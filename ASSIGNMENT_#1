@@ -1,0 +1,353 @@
+# Program that asks user to input a number from 0 to 7
+# Each number is for cipher, except for 0 = exit the program
+#
+import itertools
+import random
+import numpy as np
+
+while True:
+    cipher = input("Choose the cipher: \n"
+                   "1. Shift\n"
+                   "2. Substitution\n"
+                   "3. Affine\n"
+                   "4. Vigenere\n"
+                   "5. Hill\n"
+                   "6. Permutation\n"
+                   "7. Stream\n"
+                   "0. Exit\n"
+                   "YOUR CHOICE: ")
+    choose = input("Choose encrypt or decrypt: \n"
+                   "a. Encryption\n"
+                   "b. Decryption\n"
+                   "c. Choose another cipher\n"
+                   "Your choice: ")
+    # Shift Cipher
+    if cipher == "1":
+        if choose == "a":
+            def shift_encrypt(plaintext, shift_key):
+                ciphertext = ""
+                for letter in plaintext:
+                    if letter.isalpha():
+                        is_uppercase = letter.isupper()
+                        shifted_letter = chr((ord(letter.lower()) - ord('a') + shift_key) % 26 + ord('a'))
+                        if is_uppercase:
+                            shifted_letter = shifted_letter.upper()
+                        ciphertext += shifted_letter
+                    else:
+                        ciphertext += letter
+                return ciphertext
+            plaintext = input("Enter a word to encrypt: ")
+            shift_key = int(input("Enter a shift key (an integer): "))
+            ciphertext = shift_encrypt(plaintext, shift_key)
+            print("Plaintext: ", plaintext)
+            print("Ciphertext: ", ciphertext)
+        elif choose == "b":
+            def shift_decrypt(ciphertext, shift_key):
+                plaintext = ""
+                for letter in ciphertext:
+                    if letter.isalpha():
+                        is_uppercase = letter.isupper()
+                        shifted_letter = chr((ord(letter.lower()) - ord('a') - shift_key) % 26 + ord('a'))
+                        if is_uppercase:
+                            shifted_letter = shifted_letter.upper()
+                        plaintext += shifted_letter
+                    else:
+                        plaintext += letter
+                return plaintext
+            ciphertext = input("Enter a word to decrypt: ")
+            shift_key = int(input("Enter a shift key (an integer): "))
+            decrypted_plaintext = shift_decrypt(ciphertext, shift_key)
+            print("Ciphertext: ", ciphertext)
+            print("Decrypted plaintext: ", decrypted_plaintext)
+        if choose == "c":
+            continue
+        else:
+            print("Please, enter only a, b or c!")
+
+    # Substitution Cipher
+    if cipher == "2":
+        if choose == "a":
+            def substitution_encrypt(plaintext, key=None):
+                if key is None:
+                    # Generate a random key if none is provided
+                    alphabet = list("abcdefghijklmnopqrstuvwxyz")
+                    random.shuffle(alphabet)
+                    key = dict(zip("abcdefghijklmnopqrstuvwxyz", alphabet))
+                ciphertext = ""
+                for letter in plaintext:
+                    if letter.isalpha():
+                        if letter.isupper():
+                            ciphertext += key[letter.lower()].upper()
+                        else:
+                            ciphertext += key[letter.lower()]
+                    else:
+                        ciphertext += letter
+                return ciphertext, key
+            plaintext = input("Enter a word to encrypt: ")
+            ciphertext, key = substitution_encrypt(plaintext)
+            print("Key is: ", key)
+            print("Plaintext: ", plaintext)
+            print("Ciphertext: ", ciphertext)
+        elif choose == "b":
+            def substitution_decrypt(ciphertext, key):
+                plaintext = ""
+                for letter in ciphertext:
+                    if letter.isalpha():
+                        for k, v in key.items():
+                            if v == letter.lower():
+                                if letter.isupper():
+                                    plaintext += k.upper()
+                                else:
+                                    plaintext += k
+                                break
+                    else:
+                        plaintext += letter
+                return plaintext
+            ciphertext = input("Enter a word to decrypt: ")
+            key = eval(input("Enter the key: "))
+            decrypted_plaintext = substitution_decrypt(ciphertext, key)
+            print("Plaintext: ", decrypted_plaintext)
+        if choose == "c":
+            continue
+        else:
+            print("Please, enter only a, b or c!")
+
+    # Affine Cipher
+    if cipher == "3":
+        if choose == "a":
+            def affine_encrypt(plaintext, a, b):
+                ciphertext = ""
+                for c in plaintext:
+                    if c.isalpha():
+                        index = ord(c.lower()) - ord('a')
+                        index = (a * index + b) % 26
+                        ciphertext += chr(index + ord('a'))
+                    else:
+                        ciphertext += c
+                return ciphertext
+            plaintext = input("Enter the message:")
+            a = int(input("Enter the first value:"))
+            b = int(input("Enter the second value:"))
+            ciphertext = affine_encrypt(plaintext, a, b)
+            print("Ciphertext:", ciphertext)
+        elif choose == "b":
+            def affine_decrypt(ciphertext, a, b):
+                try:
+                    a_inv = pow(a, -1, 26)
+                except ValueError:
+                    raise ValueError("a is not invertible")
+                plaintext = ""
+                for c in ciphertext:
+                    if c.isalpha():
+                        index = ord(c.lower()) - ord('a')
+                        index = (a_inv * (index - b)) % 26
+                        plaintext += chr(index + ord('a'))
+                    else:
+                        plaintext += c
+                return plaintext
+            ciphertext = input("Enter the ciphered text:")
+            a = int(input("Enter the first value:"))
+            b = int(input("Enter the second value:"))
+            try:
+                decrypted_text = affine_decrypt(ciphertext, a, b)
+                print("Decrypted text:", decrypted_text)
+            except ValueError as e:
+                print("Error:", e)
+        if choose == "c":
+            continue
+        else:
+            print("Please, enter only a, b or c!")
+
+    # Vigenere Cipher
+    if cipher == "4":
+        if choose == "a":
+            def vigenere_encrypt(plaintext, key):
+                ciphertext = ""
+                key_index = 0
+                for letter in plaintext:
+                    if letter.isalpha():
+                        shift = ord(key[key_index % len(key)].lower()) - ord('a')
+                        if letter.isupper():
+                            shifted_letter = chr(((ord(letter.lower()) - ord('a') + shift) % 26) + ord('A'))
+                        else:
+                            shifted_letter = chr(((ord(letter.lower()) - ord('a') + shift) % 26) + ord('a'))
+                        ciphertext += shifted_letter
+                        key_index += 1
+                    else:
+                        ciphertext += letter
+                return ciphertext
+            plaintext = input("Enter a word to encrypt: ")
+            key = input("Enter a key for the Vigenere Cipher: ")
+            ciphertext = vigenere_encrypt(plaintext, key)
+            print("Plaintext: ", plaintext)
+            print("Ciphertext: ", ciphertext)
+        if choose == "b":
+            def vigenere_decrypt(ciphertext, key):
+                plaintext = ""
+                key_index = 0
+                for letter in ciphertext:
+                    if letter.isalpha():
+                        shift = ord(key[key_index % len(key)].lower()) - ord('a')
+                        if letter.isupper():
+                            shifted_letter = chr((ord(letter.lower()) - ord('a') - shift) % 26 + ord('A'))
+                        else:
+                            shifted_letter = chr((ord(letter.lower()) - ord('a') - shift) % 26 + ord('a'))
+                        plaintext += shifted_letter
+                        key_index += 1
+                    else:
+                        plaintext += letter
+                return plaintext
+            ciphertext = input("Enter a word to decrypt: ")
+            key = input("Enter a key for the Vigenere Cipher: ")
+            decrypted_plaintext = vigenere_decrypt(ciphertext, key)
+            print("Ciphertext: ", ciphertext)
+            print("Decrypted plaintext: ", decrypted_plaintext)
+        elif choose == "c":
+            continue
+        else:
+            print("Please, enter only a, b or c!")
+
+    # Hill Cipher
+    if cipher == "5":
+        def matrix_mod_inv(matrix, modulus):
+            det = int(np.round(np.linalg.det(matrix)))
+            det_inv = mod_inverse(det, modulus)
+            adj_matrix = det_inv * np.round(det * np.linalg.inv(matrix)).astype(int)
+            return adj_matrix % modulus
+        def mod_inverse(a, m):
+            for x in range(1, m):
+                if (a * x) % m == 1:
+                    return x
+            return None
+        def hill_encrypt(plaintext, key):
+            n = key.shape[0]
+            plaintext = plaintext.lower().replace(" ", "")
+            padding = "x" * (n - len(plaintext) % n) if len(plaintext) % n != 0 else ""
+            plaintext += padding
+            ciphertext = ""
+            for i in range(0, len(plaintext), n):
+                block = np.array([ord(c) - 97 for c in plaintext[i:i + n]]).reshape(-1, 1)
+                encrypted_block = np.dot(key, block) % 26
+                encrypted_block = [int(c) for c in encrypted_block.ravel()]
+                ciphertext += "".join([chr(c + 97) for c in encrypted_block])
+            return ciphertext
+        def hill_decrypt(ciphertext, key):
+            n = key.shape[0]
+            plaintext = ""
+            key_inv = matrix_mod_inv(key, 26)
+            for i in range(0, len(ciphertext), n):
+                block = np.array([ord(c) - 97 for c in ciphertext[i:i + n]]).reshape(-1, 1)
+                decrypted_block = np.dot(key_inv, block) % 26
+                plaintext += "".join([chr(int(c) + 97) for c in decrypted_block.flatten()])
+            plaintext = plaintext.strip("x")
+            return plaintext
+        if choose == 'a':
+            plaintext = input("Enter a word to encrypt: ")
+            key_input = input("Enter the 2x2 key in the format [a, b], [c, d]: ")
+            key_list = eval(key_input)
+            key = np.array(key_list)
+            ciphertext = hill_encrypt(plaintext, key)
+            print("Plaintext: ", plaintext)
+            print("Ciphertext: ", ciphertext)
+        elif choose == 'b':
+            ciphertext = input("Enter a word to decrypt: ")
+            key_input = input("Enter the 2x2 key in the format [a, b], [c, d]: ")
+            key_list = eval(key_input)
+            key = np.array(key_list)
+            decrypted_plaintext = hill_decrypt(ciphertext, key)
+            print("Ciphertext: ", ciphertext)
+            print("Decrypted plaintext: ", decrypted_plaintext)
+        elif choose == 'c':
+            continue
+        else:
+            print("Please enter only a, b or c!")
+
+    # Permutation Cipher
+    if cipher == "6":
+        def permute(word):
+            return ''.join(random.sample(word, len(word)))
+        def permute_encrypt(plaintext):
+            ciphertext = ''
+            for word in plaintext.split():
+                ciphertext += permute(word) + ' '
+            return ciphertext[:-1]  # remove last space
+        def permute_decrypt(ciphertext):
+            permutations = []
+            words = ciphertext.split()
+            for word in words:
+                permuted_chars = [list(p) for p in set([''.join(p) for p in itertools.permutations(word)])]
+                permutations.append(permuted_chars)
+            possible_combinations = list(itertools.product(*permutations))
+            plaintexts = []
+            for combination in possible_combinations:
+                plaintext = ' '.join([''.join(w) for w in combination])
+                plaintexts.append(plaintext)
+            return plaintexts
+        if choose == 'a':
+            plaintext = input("Enter a word to encrypt: ")
+            ciphertext = permute_encrypt(plaintext)
+            print("Plaintext: ", plaintext)
+            print("Ciphertext: ", ciphertext)
+        elif choose == 'b':
+            ciphertext = input("Enter a word to decrypt: ")
+            plaintexts = permute_decrypt(ciphertext)
+            print("Ciphertext: ", ciphertext)
+            print("Possible plaintexts: ")
+            for plaintext in plaintexts:
+                print(plaintext)
+        elif choose == 'c':
+            continue
+        else:
+            print("Please enter only a, b or c!")
+
+    # Stream Cipher
+    if cipher == "7":
+        def stream_cipher(text, key, encrypt=True):
+            # Convert text and key to bytes
+            text_bytes = text.encode('utf-8')
+            key_bytes = key.encode('utf-8')
+            # Initialize the random number generator with the key
+            random.seed(key_bytes)
+            # Generate the keystream
+            keystream = bytearray(len(text_bytes))
+            for i in range(len(text_bytes)):
+                keystream[i] = random.randint(0, 255)
+            # Encrypt or decrypt the text
+            if encrypt:
+                cipher_bytes = bytearray(len(text_bytes))
+                for i in range(len(text_bytes)):
+                    cipher_bytes[i] = text_bytes[i] ^ keystream[i]
+                # Convert ciphertext to string and return
+                ciphertext = cipher_bytes.hex()
+                return ciphertext
+            else:
+                cipher_bytes = bytearray.fromhex(text)
+                plaintext_bytes = bytearray(len(cipher_bytes))
+                for i in range(len(cipher_bytes)):
+                    plaintext_bytes[i] = cipher_bytes[i] ^ keystream[i]
+                # Convert plaintext to string and return
+                plaintext = plaintext_bytes.decode('utf-8')
+                return plaintext
+        if choose == 'a':
+            plaintext = input("Enter a text to encrypt: ")
+            key = input("Enter a key: ")
+            ciphertext = stream_cipher(plaintext, key)
+            print("Plaintext: ", plaintext)
+            print("Key: ", key)
+            print("Ciphertext: ", ciphertext)
+        elif choose == 'b':
+            ciphertext = input("Enter a text to decrypt: ")
+            key = input("Enter the key: ")
+            plaintext = stream_cipher(ciphertext, key, encrypt=False)
+            print("Ciphertext: ", ciphertext)
+            print("Key: ", key)
+            print("Decrypted plaintext: ", plaintext)
+        elif choose == 'c':
+            continue
+        else:
+            print("Please enter only a, b or c!")
+
+    # Exit
+    if cipher == "0":
+        print("Thank you for using this program!")
+        break
